@@ -3,8 +3,8 @@ package com.grilla.pan;
 import android.app.Activity;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 
@@ -26,6 +28,9 @@ public class MainActivity extends ActionBarActivity
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
+    private ListView mNavigationList;
+
+    String[] navigationTitles;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -45,14 +50,42 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        mNavigationList = (ListView)findViewById(R.id.nav_list);
+        navigationTitles = getResources().getStringArray(R.array.navigation_items);
+        ArrayAdapter<String> navAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, navigationTitles);
+        mNavigationList.setAdapter(navAdapter);
     }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment newFrag;
+
+        switch (position) {
+            // Find a Place
+            case 0:
+                newFrag = new FindFragment();
+                break;
+            // Search History
+            case 1:
+                newFrag = new HistoryFragment();
+                break;
+            // Help and settings
+            case 2:
+                newFrag = new HelpFragment();
+                break;
+            // Whoops...? Back to main screen
+            default:
+                newFrag = new FindFragment();
+                break;
+        }
+
+        invalidateOptionsMenu();
+
+        FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                .replace(R.id.container, newFrag)
                 .commit();
     }
 
