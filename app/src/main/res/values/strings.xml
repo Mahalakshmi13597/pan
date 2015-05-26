@@ -12,6 +12,10 @@
 
     <string name="action_settings">Settings</string>
 
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="yelp_consumer_key">i0HANNUji9wbUlItaPZTbg</string>
+    <string name="yelp_consumer_secret">hlooKcw-USOGcfEaPhI8CpVrmp8</string>
+    <string name="yelp_token">6G6gS4eG8OnryQoYrq8Rcosdz2qCC6uT</string>
+    <string name="yelp_token_secret">HuKYEiYLCx6UdfWpAYOKvBw_ulY</string>
+    <string name="yelp_api_path">http://api.yelp.com</string>
+    <string name="yelp_search_path">/v2/search</string>
 </resources>
