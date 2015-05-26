@@ -2,6 +2,8 @@ package com.grilla.pan;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,6 +16,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +29,7 @@ import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by bill on 5/25/15.
@@ -46,6 +51,8 @@ public class FindFragment extends Fragment {
     // Interface elements
     ArrayList<String> searchResults;
     ArrayAdapter<String> searchResultsAdapter;
+
+    ArrayList<YelpBusiness> yelpBusinesses;
 
     // Required empty constructor
     public FindFragment() {}
@@ -82,7 +89,9 @@ public class FindFragment extends Fragment {
         searchResultsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String clicked = searchResults.get(position);
+                YelpBusiness selected = yelpBusinesses.get(position);
+                String clicked = selected.id + ": " + selected.name + ", " + selected.address + "; (" + selected.lat + ", " + selected.lng + ")";
+                Log.d("CLICKED", clicked);
             }
         });
 
@@ -93,6 +102,8 @@ public class FindFragment extends Fragment {
             public void onClick(View v) {
                 // Need to empty old array! (adds on elements to end)
                 searchResults.clear();
+                yelpBusinesses.clear();
+                searchResultsList.setSelectionAfterHeaderView();
 
                 // get search terms
                 EditText location = (EditText)rootView.findViewById(R.id.search_location);
@@ -101,6 +112,8 @@ public class FindFragment extends Fragment {
                 searchYelp(location.getText().toString(), term.getText().toString());
             }
         });
+
+        yelpBusinesses = new ArrayList<>();
 
         return rootView;
     }
@@ -136,6 +149,14 @@ public class FindFragment extends Fragment {
                 for (int i = 0; i < businesses.length(); i++) {
                     JSONObject j = businesses.getJSONObject(i);
                     searchResults.add(j.getString("name"));
+                    JSONObject location = j.getJSONObject("location");
+
+                    YelpBusiness b = new YelpBusiness(j.getString("id"),
+                                                        j.getString("name"),
+                                                        j.getString("categories"),
+                                                        location.getString("address"));
+                    yelpBusinesses.add(b);
+                    new GetGeocodeTask().execute(b);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -143,6 +164,43 @@ public class FindFragment extends Fragment {
 
             // update the list
             searchResultsAdapter.notifyDataSetChanged();
+        }
+    }
+
+    // asynchronous task to get latitude and longitude from address
+    private class GetGeocodeTask extends AsyncTask<YelpBusiness, Void, LatLng> {
+        private YelpBusiness b;
+
+        @Override
+        protected LatLng doInBackground(YelpBusiness... params) {
+            b = params[0];
+
+            Geocoder coder = new Geocoder(getActivity());
+            List<Address> address;
+            LatLng p1 = null;
+
+            try {
+                address = coder.getFromLocationName(b.address, 5);
+                if (address == null) {
+                    return null;
+                }
+                Address location = address.get(0);
+                location.getLatitude();
+                location.getLongitude();
+
+                p1 = new LatLng(location.getLatitude(), location.getLongitude() );
+
+            } catch (Exception ex) {
+
+                ex.printStackTrace();
+            }
+
+            return p1;
+        }
+
+        @Override
+        protected void onPostExecute(LatLng result) {
+            if (result != null) b.setLatLng(result.latitude, result.longitude);
         }
     }
 }

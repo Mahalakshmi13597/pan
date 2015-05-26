@@ -8,6 +8,7 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -51,10 +52,12 @@ public class MainActivity extends ActionBarActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
-        mNavigationList = (ListView)findViewById(R.id.nav_list);
+        /*mNavigationList = (ListView)findViewById(R.id.nav_list);
         navigationTitles = getResources().getStringArray(R.array.navigation_items);
         ArrayAdapter<String> navAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, navigationTitles);
-        mNavigationList.setAdapter(navAdapter);
+        Log.d("null?", mNavigationList.toString());
+        Log.d("nulltest", navAdapter.toString());
+        mNavigationList.setAdapter(navAdapter);*/
     }
 
     @Override
