@@ -1,6 +1,7 @@
 package com.grilla.pan;
 
 import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
@@ -77,9 +78,8 @@ public class FindFragment extends Fragment {
         Context c = getActivity().getApplicationContext();
 
         // Create and initialize yelp OAuth 1.0a service
-        yelpService = new ServiceBuilder().provider(YelpAPI.class).apiKey(YELP_CONSUMER_KEY)
-                .apiSecret(YELP_CONSUMER_SECRET).build();
-        yelpAccessToken = new Token(YELP_TOKEN, YELP_TOKEN_SECRET);
+        yelpService = YelpService.getServiceInstance();
+        yelpAccessToken = YelpService.getTokenInstance();
 
         // setup list of results
         final ListView searchResultsList = (ListView)rootView.findViewById(R.id.search_results);
@@ -92,6 +92,18 @@ public class FindFragment extends Fragment {
                 YelpBusiness selected = yelpBusinesses.get(position);
                 String clicked = selected.id + ": " + selected.name + ", " + selected.address + "; (" + selected.lat + ", " + selected.lng + ")";
                 Log.d("CLICKED", clicked);
+
+                SearchFragment fragment = new SearchFragment();
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+
+                Bundle args = new Bundle();
+                args.putParcelable(SearchFragment.ARG_BUSINESS, selected);
+                fragment.setArguments(args);
+
+                ft.replace(R.id.container, fragment);
+                ft.addToBackStack("find");
+
+                ft.commit();
             }
         });
 
@@ -100,7 +112,7 @@ public class FindFragment extends Fragment {
         findButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Need to empty old array! (adds on elements to end)
+                // Need to reset everything
                 searchResults.clear();
                 yelpBusinesses.clear();
                 searchResultsList.setSelectionAfterHeaderView();
@@ -177,7 +189,7 @@ public class FindFragment extends Fragment {
 
             Geocoder coder = new Geocoder(getActivity());
             List<Address> address;
-            LatLng p1 = null;
+            LatLng p1;
 
             try {
                 address = coder.getFromLocationName(b.address, 5);
@@ -191,8 +203,7 @@ public class FindFragment extends Fragment {
                 p1 = new LatLng(location.getLatitude(), location.getLongitude() );
 
             } catch (Exception ex) {
-
-                ex.printStackTrace();
+                return null;
             }
 
             return p1;
