@@ -2,16 +2,22 @@ package com.grilla.pan;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -24,6 +30,7 @@ import org.scribe.model.Token;
 import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +48,9 @@ public class SearchFragment extends Fragment {
 
     private String YELP_API_PATH;
     private String YELP_SEARCH_PATH;
+
+    private ArrayAdapter<String> searchResultsAdapter;
+    private ArrayList<String> searchResults;
 
     public SearchFragment() {
         // Required empty public constructor
@@ -69,6 +79,10 @@ public class SearchFragment extends Fragment {
 
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_search, container, false);
+        Context c = getActivity().getApplicationContext();
+
+        TextView businessText = (TextView)rootView.findViewById(R.id.business_text);
+        businessText.setText("Selected " + business.name);
 
         Button searchButton = (Button)rootView.findViewById(R.id.search_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -80,6 +94,12 @@ public class SearchFragment extends Fragment {
 
         yelpService = YelpService.getServiceInstance();
         yelpToken = YelpService.getTokenInstance();
+        yelpBusinesses = new ArrayList<>();
+
+        ListView searchResultsList = (ListView)rootView.findViewById(R.id.search_results);
+        searchResults = new ArrayList<>();
+        searchResultsAdapter = new ArrayAdapter<>(c, android.R.layout.simple_list_item_1, searchResults);
+        searchResultsList.setAdapter(searchResultsAdapter);
 
         return rootView;
     }
@@ -157,6 +177,7 @@ public class SearchFragment extends Fragment {
                             j.getString("categories"),
                             location.getString("address"));
                     yelpBusinesses.add(b);
+                    searchResults.add(b.name);
                     new GetGeocodeTask().execute(b);
                 }
             } catch (JSONException e) {
@@ -202,5 +223,16 @@ public class SearchFragment extends Fragment {
         protected void onPostExecute(LatLng result) {
             if (result != null) b.setLatLng(result.latitude, result.longitude);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(getActivity());
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

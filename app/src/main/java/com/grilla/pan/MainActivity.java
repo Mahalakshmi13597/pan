@@ -159,4 +159,14 @@ public class MainActivity extends ActionBarActivity
         else
             throw new Exception("Location not ready");
     }
+
+    // potentially makes the back button work, may need tweaking
+    @Override
+    public void onBackPressed() {
+        if (getFragmentManager().getBackStackEntryCount() == 0) {
+            this.finish();
+        } else {
+            getFragmentManager().popBackStack();
+        }
+    }
 }

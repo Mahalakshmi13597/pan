@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -101,7 +102,7 @@ public class FindFragment extends Fragment {
                 fragment.setArguments(args);
 
                 ft.replace(R.id.container, fragment);
-                ft.addToBackStack("find");
+                ft.addToBackStack(null);
 
                 ft.commit();
             }
@@ -116,6 +117,7 @@ public class FindFragment extends Fragment {
                 searchResults.clear();
                 yelpBusinesses.clear();
                 searchResultsList.setSelectionAfterHeaderView();
+                hideKeyboard();
 
                 // get search terms
                 EditText location = (EditText)rootView.findViewById(R.id.search_location);
@@ -212,6 +214,15 @@ public class FindFragment extends Fragment {
         @Override
         protected void onPostExecute(LatLng result) {
             if (result != null) b.setLatLng(result.latitude, result.longitude);
+        }
+    }
+
+    private void hideKeyboard() {
+        // Check if no view has focus:
+        View view = getActivity().getCurrentFocus();
+        if (view != null) {
+            InputMethodManager inputManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
     }
 }
