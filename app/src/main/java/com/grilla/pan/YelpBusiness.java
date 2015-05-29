@@ -2,7 +2,6 @@ package com.grilla.pan;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,7 +14,12 @@ public class YelpBusiness implements Parcelable {
     public ArrayList<String> categories;
     public String address;
     public double lat = 90, lng = 200; // initial value outside of possible ranges
+    public String distance;
+    public String ratingImageURL;
+    public String rating;
+    public String imageURL;
 
+    // Simple constructor for list that find generates
     public YelpBusiness(String id, String name, String categories, String address) {
         this.id = id;
         this.name = name;
@@ -35,6 +39,16 @@ public class YelpBusiness implements Parcelable {
         }
 
         this.address = address;
+    }
+
+    // More advanced constructor for loading business page
+    public YelpBusiness(String id, String name, String categories, String address, String distance, String ratingImageURL, String rating, String imageURL) {
+        this(id, name, categories, address);
+
+        this.distance = distance;
+        this.ratingImageURL = ratingImageURL;
+        this.rating = rating;
+        this.imageURL = imageURL;
     }
 
     public boolean latLngSet() {
@@ -64,6 +78,10 @@ public class YelpBusiness implements Parcelable {
         }
         address = in.readString();
         lat = in.readDouble();
+        distance = in.readString();
+        ratingImageURL = in.readString();
+        rating = in.readString();
+        imageURL = in.readString();
     }
 
     @Override
@@ -83,6 +101,10 @@ public class YelpBusiness implements Parcelable {
         }
         dest.writeString(address);
         dest.writeDouble(lat);
+        dest.writeString(distance);
+        dest.writeString(ratingImageURL);
+        dest.writeString(rating);
+        dest.writeString(imageURL);
     }
 
     @SuppressWarnings("unused")

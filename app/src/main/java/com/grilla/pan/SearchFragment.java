@@ -2,6 +2,7 @@ package com.grilla.pan;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
@@ -14,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -100,6 +102,23 @@ public class SearchFragment extends Fragment {
         searchResults = new ArrayList<>();
         searchResultsAdapter = new ArrayAdapter<>(c, android.R.layout.simple_list_item_1, searchResults);
         searchResultsList.setAdapter(searchResultsAdapter);
+        searchResultsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                YelpBusiness business = yelpBusinesses.get(position);
+
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                BusinessViewFragment f = new BusinessViewFragment();
+
+                Bundle args = new Bundle();
+                args.putParcelable(BusinessViewFragment.ARG_BUSINESS, business);
+                f.setArguments(args);
+
+                ft.replace(R.id.container, f);
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+        });
 
         return rootView;
     }
@@ -175,7 +194,11 @@ public class SearchFragment extends Fragment {
                     YelpBusiness b = new YelpBusiness(j.getString("id"),
                             j.getString("name"),
                             j.getString("categories"),
-                            location.getString("address"));
+                            location.getString("address"),
+                            String.valueOf(j.getInt("distance")),
+                            j.getString("rating_img_url"),
+                            String.valueOf(j.getDouble("rating")),
+                            j.getString("image_url"));
                     yelpBusinesses.add(b);
                     searchResults.add(b.name);
                     new GetGeocodeTask().execute(b);

@@ -18,4 +18,6 @@
     <string name="yelp_token_secret">HuKYEiYLCx6UdfWpAYOKvBw_ulY</string>
     <string name="yelp_api_path">http://api.yelp.com</string>
     <string name="yelp_search_path">/v2/search</string>
+
+    <string name="business_reviews_title">Reviews</string>
 </resources>
