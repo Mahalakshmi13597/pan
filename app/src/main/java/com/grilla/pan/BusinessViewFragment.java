@@ -140,66 +140,22 @@ public class BusinessViewFragment extends Fragment {
         protected void onPostExecute(String result) {
             //outputString(result);
             Document doc = Jsoup.parse(result);
-            Element link = doc.select("a.biz-shim").first();
 
-            String imgUrl = yelpURL + link.attr("href");
-            Log.d(TAG, imgUrl);
-            new YelpImageTask2(bmImage).execute(imgUrl);
-        }
-    }
-
-    private class YelpImageTask2 extends AsyncTask<String, Void, String> {
-        ImageView bmImage;
-
-        public YelpImageTask2(ImageView bmImage) {
-            this.bmImage = bmImage;
-        }
-
-        protected String doInBackground(String... urls) {
-            String url = urls[0];
-            Log.d("URL", url);
-            String result = "";
-
-            try {
-                HttpClient client = new DefaultHttpClient();
-                HttpGet request = new HttpGet(url);
-                HttpResponse response = client.execute(request);
-
-                InputStream in = response.getEntity().getContent();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-                StringBuilder str = new StringBuilder();
-                String line;
-                while((line = reader.readLine()) != null)
-                {
-                    str.append(line);
-                }
-                in.close();
-                result = str.toString();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(String result) {
-            //outputString(result);
-            Document doc = Jsoup.parse(result);
-            Elements links = doc.select("meta");
+            Elements metas = doc.select("meta");
             Element link = null;
-            for (int i = 0; i < links.size(); i++) {
-                if (links.get(i).hasAttr("property") && links.attr("property").equals("og:image")) {
-                    link = links.get(i);
+            for (int i = 0; i < metas.size(); i++) {
+                Element meta = metas.get(i);
+                if (meta.hasAttr("property") && meta.attr("property").equals("og:image")) {
+                    Log.d(TAG, meta.attr("content"));
+                    link = meta;
                     break;
                 }
             }
-            if (link == null)
-                return;
-            Log.d("TAG", link.toString());
 
-            String imgUrl = yelpURL + link.attr("content");
-            Log.d(TAG, imgUrl);
-            new DownloadImageTask(bmImage).execute(imgUrl);
+            if (link != null)
+                new DownloadImageTask(bmImage).execute(link.attr("content"));
+            else
+                new DownloadImageTask(bmImage).execute(business.imageURL);
         }
     }
 
