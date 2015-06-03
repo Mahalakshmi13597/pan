@@ -37,6 +37,9 @@ import java.util.List;
  * Created by bill on 5/25/15.
  */
 public class FindFragment extends Fragment {
+    private String ARG_BUSINESS_NAMES = "com.grilla.pan.FindFragment.ARG_BUSINESS_NAMES";
+    private String ARG_BUSINESSES = "com.grilla.pan.FindFragment.ARG_BUSINESSES";
+    static String TAG = "FindFragment";
 
     // Yelp api information
     String YELP_CONSUMER_KEY;
@@ -51,8 +54,10 @@ public class FindFragment extends Fragment {
     Token yelpAccessToken;
 
     // Interface elements
+    View rootView;
     ArrayList<String> searchResults;
     ArrayAdapter<String> searchResultsAdapter;
+    ListView searchResultsList;
 
     ArrayList<YelpBusiness> yelpBusinesses;
 
@@ -62,6 +67,7 @@ public class FindFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
 
         YELP_CONSUMER_KEY = getString(R.string.yelp_consumer_key);
         YELP_CONSUMER_SECRET = getString(R.string.yelp_consumer_secret);
@@ -69,13 +75,32 @@ public class FindFragment extends Fragment {
         YELP_TOKEN_SECRET = getString(R.string.yelp_token_secret);
         YELP_API_PATH = getString(R.string.yelp_api_path);
         YELP_SEARCH_PATH = getString(R.string.yelp_search_path);
+
+        //if (searchResults == null) searchResults = new ArrayList<>();
+        //if (yelpBusinesses == null) yelpBusinesses = new ArrayList<>();
+
+        if (savedInstanceState != null) {
+            Log.d(TAG, "Howdy");
+            yelpBusinesses = savedInstanceState.getParcelableArrayList(ARG_BUSINESSES);
+            if (!yelpBusinesses.isEmpty()) Log.d(TAG, yelpBusinesses.get(0).name);
+            else Log.d(TAG, "Businesses empty");
+            searchResults = savedInstanceState.getStringArrayList(ARG_BUSINESS_NAMES);
+            if (!searchResults.isEmpty()) Log.d(TAG, searchResults.get(0));
+            else Log.d(TAG, "Search results empty");
+        } else {
+            Log.d(TAG, "No howdy :(");
+            yelpBusinesses = new ArrayList<>();
+            searchResults = new ArrayList<>();
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
+
         // Inflate the layout for this fragment
-        final View rootView = inflater.inflate(R.layout.fragment_find, container, false);
+        rootView = inflater.inflate(R.layout.fragment_find, container, false);
         Context c = getActivity().getApplicationContext();
 
         // Create and initialize yelp OAuth 1.0a service
@@ -83,8 +108,7 @@ public class FindFragment extends Fragment {
         yelpAccessToken = YelpService.getTokenInstance();
 
         // setup list of results
-        final ListView searchResultsList = (ListView)rootView.findViewById(R.id.search_results);
-        searchResults = new ArrayList<>();
+        searchResultsList = (ListView)rootView.findViewById(R.id.search_results);
         searchResultsAdapter = new ArrayAdapter<>(c, android.R.layout.simple_list_item_1, searchResults);
         searchResultsList.setAdapter(searchResultsAdapter);
         searchResultsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -127,9 +151,33 @@ public class FindFragment extends Fragment {
             }
         });
 
-        yelpBusinesses = new ArrayList<>();
-
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.d(TAG, "onActivityCreated");
+
+        
+       /* if (savedInstanceState != null) {
+            Log.d(TAG, "Howdy");
+            yelpBusinesses = savedInstanceState.getParcelableArrayList(ARG_BUSINESSES);
+            if (!yelpBusinesses.isEmpty()) Log.d(TAG, yelpBusinesses.get(0).name);
+            else Log.d(TAG, "Businesses empty");
+            searchResults = savedInstanceState.getStringArrayList(ARG_BUSINESS_NAMES);
+            if (!searchResults.isEmpty()) Log.d(TAG, searchResults.get(0));
+            else Log.d(TAG, "Search results empty");
+        }*/
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle args) {
+        super.onSaveInstanceState(args);
+        Log.d(TAG, "onSaveInstanceState");
+
+        args.putStringArrayList(ARG_BUSINESS_NAMES, searchResults);
+        args.putParcelableArrayList(ARG_BUSINESSES, yelpBusinesses);
     }
 
     private void searchYelp(String location, String search_term) {

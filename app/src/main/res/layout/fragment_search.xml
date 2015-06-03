@@ -16,9 +16,10 @@
             android:layout_height="wrap_content" />
 
         <Button android:id="@+id/search_button"
-            android:text="Search"
+            android:text="Waiting for location..."
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:enabled="false"/>
     </LinearLayout>
 
     <ListView android:id="@+id/search_results"

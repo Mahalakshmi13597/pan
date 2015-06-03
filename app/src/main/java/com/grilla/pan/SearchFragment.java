@@ -32,12 +32,14 @@ import org.scribe.model.Token;
 import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SearchFragment extends Fragment {
     public static final String ARG_BUSINESS = "com.grilla.pan.SearchFragment.business";
+    private static final String ARG_BUSINESSES = "com.grilla.pan.SearchFragment.businesses";
+    private static final String ARG_BUSINESS_NAMES = "com.grilla.pan.SearchFragment.business_names";
+    static String TAG = "SearchFragment";
 
     private RequestLocationUpdatesListener mCallback;
 
@@ -54,12 +56,15 @@ public class SearchFragment extends Fragment {
     private ArrayAdapter<String> searchResultsAdapter;
     private ArrayList<String> searchResults;
 
+    private Button searchButton;
+
     public SearchFragment() {
         // Required empty public constructor
     }
 
     public interface RequestLocationUpdatesListener {
         Location onRequestLocation() throws Exception;
+        void registerFragment(SearchFragment f);
     }
 
     @Override
@@ -68,16 +73,37 @@ public class SearchFragment extends Fragment {
 
         YELP_API_PATH = getString(R.string.yelp_api_path);
         YELP_SEARCH_PATH = getString(R.string.yelp_search_path);
+
+        if (savedInstanceState != null) {
+            // probably orientation change
+            Log.d(TAG, "possible orientation change");
+            yelpBusinesses = savedInstanceState.getParcelableArrayList(ARG_BUSINESSES);
+            searchResults = savedInstanceState.getStringArrayList(ARG_BUSINESS_NAMES);
+            //searchResultsAdapter.notifyDataSetChanged();
+            business = savedInstanceState.getParcelable(ARG_BUSINESS);
+            if (!yelpBusinesses.isEmpty()) Log.d(TAG, yelpBusinesses.get(0).name);
+        } else {
+            if (yelpBusinesses != null && searchResults != null) {
+                Log.d(TAG, "returning from backstack");
+                Log.d(TAG, yelpBusinesses.get(0).name);
+                // returning from backstack, data is fine
+            } else {
+                Log.d(TAG, "new instance");
+                // new instance, do nothing
+            }
+        }
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Load data given to it
-        if (savedInstanceState == null) savedInstanceState = getArguments();
-        if (savedInstanceState != null) business = savedInstanceState.getParcelable(ARG_BUSINESS);
-
-        Log.d("TEST", business.toString());
+        business = getArguments().getParcelable(ARG_BUSINESS);
 
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_search, container, false);
@@ -86,7 +112,7 @@ public class SearchFragment extends Fragment {
         TextView businessText = (TextView)rootView.findViewById(R.id.business_text);
         businessText.setText("Selected " + business.name);
 
-        Button searchButton = (Button)rootView.findViewById(R.id.search_button);
+        searchButton = (Button)rootView.findViewById(R.id.search_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,11 +122,11 @@ public class SearchFragment extends Fragment {
 
         yelpService = YelpService.getServiceInstance();
         yelpToken = YelpService.getTokenInstance();
-        yelpBusinesses = new ArrayList<>();
+        if (yelpBusinesses == null) yelpBusinesses = new ArrayList<>();
 
         ListView searchResultsList = (ListView)rootView.findViewById(R.id.search_results);
-        searchResults = new ArrayList<>();
-        searchResultsAdapter = new ArrayAdapter<>(c, android.R.layout.simple_list_item_1, searchResults);
+        if (searchResults == null) searchResults = new ArrayList<>();
+        /*if (searchResultsAdapter == null)*/ searchResultsAdapter = new ArrayAdapter<>(c, android.R.layout.simple_list_item_1, searchResults);
         searchResultsList.setAdapter(searchResultsAdapter);
         searchResultsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -120,6 +146,9 @@ public class SearchFragment extends Fragment {
             }
         });
 
+        if (checkLocationReady())
+            activateSearch();
+
         return rootView;
     }
 
@@ -131,6 +160,7 @@ public class SearchFragment extends Fragment {
         // the callback interface. If not, it throws an exception
         try {
             mCallback = (RequestLocationUpdatesListener) activity;
+            mCallback.registerFragment(this);
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement RequestLocationUpdatesListener");
@@ -140,6 +170,30 @@ public class SearchFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle args) {
+        super.onSaveInstanceState(args);
+        args.putParcelableArrayList(ARG_BUSINESSES, yelpBusinesses);
+        args.putStringArrayList(ARG_BUSINESS_NAMES, searchResults);
+        args.putParcelable(ARG_BUSINESS, business);
+    }
+
+    public void activateSearch() {
+        searchButton.setEnabled(true);
+        searchButton.setText("Search");
+    }
+
+    public boolean checkLocationReady() {
+        try {
+            location = mCallback.onRequestLocation();
+        } catch (Exception e) {
+            // location not ready
+            return false;
+        }
+        // location ready
+        return true;
     }
 
     public void doSearch() {
